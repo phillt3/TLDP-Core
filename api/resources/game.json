@@ -1,0 +1,93 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "GameFilter Database API",
+        "description": "An API that fetches game data from local GameFilter DB",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local development server"
+        }
+    ],
+    "paths": {
+        "/games": {
+            "get": {
+                "summary": "Retrieve games from the GameFilter database",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "list_size",
+                        "in": "query",
+                        "description": "Max number of games to return.",
+                        "required": true,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 20
+                    },
+                    {
+                        "name": "playtime",
+                        "in": "query",
+                        "description": "The desired average playtime",
+                        "required": true,
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    {
+                        "name": "playtime_leniency",
+                        "in": "query",
+                        "description": "How many hours, give or take, of leniency to afford average playtime",
+                        "required": false,
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    {
+                        "name": "genres",
+                        "in": "query",
+                        "description": "Filter by game genres, for example: 'action,rpg'. Available Fields: `action`, `adventure`, `rpg`, `fighting`, `strategy`, `shooter`, `arcade`, `platformer`, `racing`, `puzzle`, `sports`, `indie`, `simulation`, `casual`, `mmo`, 'family', 'card', 'educational', 'boardgame",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "data": [
+                                        {
+                                            "name": "Red Dead Redemption 2",
+                                            "metascore": 96,
+                                            "released": "2018-10-26",
+                                            "playtime": 20,
+                                            "img": "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg"
+                                        },
+                                        {
+                                            "name": "Metal Gear Solid 4: Guns of the Patriots",
+                                            "metascore": 94,
+                                            "released": "2008-06-12",
+                                            "playtime": 20,
+                                            "img": "https://media.rawg.io/media/games/b27/b27eea9f8df280799b357b320f01211c.jpg"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "Invalid parameters, please check the request."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
