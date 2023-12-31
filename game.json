@@ -18,7 +18,7 @@
                 "description": "",
                 "parameters": [
                     {
-                        "name": "list_size",
+                        "name": "result_size",
                         "in": "query",
                         "description": "Max number of games to return.",
                         "required": true,
