@@ -1,3 +1,4 @@
+package src.test.java.TLDP;
 import java.io.*;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -5,6 +6,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
+
+import src.main.java.TLDP.GameApiService;
+
 import static org.mockito.Mockito.*;
 
 public class GameApiServiceTest {

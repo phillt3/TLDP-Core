@@ -1,3 +1,4 @@
+package src.test.java.TLDP;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -5,6 +6,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
+
+import src.main.java.TLDP.DatabaseManager;
+import src.main.java.TLDP.QueryParameters;
 
 public class DatabaseManagerTest  {
 

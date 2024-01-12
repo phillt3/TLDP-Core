@@ -1,3 +1,4 @@
+package src.main.java.TLDP;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class DatabaseManager {
    * @throws SQLException
    */
     public static JSONObject getGames(QueryParameters params) throws SQLException {
-
+        System.out.println(DatabaseConfig.getJDBCUrl());
         Connection conn = DriverManager.getConnection(DatabaseConfig.getJDBCUrl());
         PreparedStatement prep = buildStatement(conn, params);
         ResultSet resultSet = prep.executeQuery();
