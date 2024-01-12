@@ -45,7 +45,14 @@
                     {
                         "name": "genres",
                         "in": "query",
-                        "description": "Filter by game genres, for example: 'action,rpg'. Available Fields: `action`, `adventure`, `rpg`, `fighting`, `strategy`, `shooter`, `arcade`, `platformer`, `racing`, `puzzle`, `sports`, `indie`, `simulation`, `casual`, `mmo`, 'family', 'card', 'educational', 'boardgame",
+                        "description": "Filter by game genres, for example: 'action,rpg'. Available Fields: `action`, `adventure`, `rpg`, `fighting`, `strategy`, `shooter`, `arcade`, `platformer`, `racing`, `puzzle`, `sports`, `indie`, `simulation`, `casual`, `mmo`, 'family', 'card', 'educational', 'boardgame'",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "platforms",
+                        "in": "query",
+                        "description": "Filter by target platforms, for example: 'PlayStation 4'. Available Fields: '3do', 'android', 'atari 7800', 'atari st', 'classic macintosh', 'commodore / amiga', 'dreamcast', 'game boy', 'game boy advance', 'game boy color', 'game gear', 'game cube', 'genesis', 'ios', 'jaguar', 'linux', 'macos', 'neo geo', 'nes', 'nintendo 3ds', 'nintendo 64', 'nintendo ds', 'nintendo switch', 'pc', 'playstation', 'playstation 2', 'playstation 3', 'playstation 4', 'playstation 5', 'ps vita', 'psp', 'sega 32x', 'sega cd', 'sega master system', 'sega saturn', 'snes', 'web', 'wii', 'wii u', 'xbox', 'xbox 360', 'xbox one', 'xbox series s/x'",
                         "required": false,
                         "type": "string"
                     }
@@ -62,6 +69,7 @@
                                             "metascore": 96,
                                             "released": "2018-10-26",
                                             "playtime": 20,
+                                            "platforms": ["PlayStation 4", "Xbox One", "PC"],
                                             "img": "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg"
                                         },
                                         {
@@ -69,6 +77,7 @@
                                             "metascore": 94,
                                             "released": "2008-06-12",
                                             "playtime": 20,
+                                            "platforms": ["PlayStation 3"],
                                             "img": "https://media.rawg.io/media/games/b27/b27eea9f8df280799b357b320f01211c.jpg"
                                         }
                                     ]
@@ -82,6 +91,16 @@
                             "application/json": {
                                 "example": {
                                     "error": "Invalid parameters, please check the request."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "Error occured retrieving the requested data."
                                 }
                             }
                         }

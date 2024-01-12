@@ -1,4 +1,6 @@
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -14,7 +16,6 @@ public class DatabaseManagerTest  {
 
         JSONObject result = DatabaseManager.getGames(params);
         JSONArray games = result.getJSONArray("data");
-        
         Assert.assertEquals(games.length(), 2);
 
         for (Object obj : games) {
@@ -32,7 +33,7 @@ public class DatabaseManagerTest  {
 
         JSONObject result = DatabaseManager.getGames(params);
         JSONArray games = result.getJSONArray("data");
-        
+        Assert.assertFalse(games.isEmpty());
         for (Object obj : games) {
             JSONObject jo = (JSONObject) obj;
             Assert.assertTrue(jo.getInt("playtime") >= 8 && jo.getInt("playtime") <= 12);
@@ -41,10 +42,7 @@ public class DatabaseManagerTest  {
 
     @Test
     public void testGenres() throws SQLException {
-        //this test has given me additional considerations:
-        //currenlty genres are considered independently
-        //so an action rpg game will appear in a list of games that are just action or just rpg as well
-        //need to look into reformatting the database prioritize games that are both?
+        //Genres are filtered dependently meaning that if the genre input is 'action,rpg' only games with both genres will be listed/
         QueryParameters params = new QueryParameters();
         params.setResult_size(10);
         params.setPlaytime(1);
@@ -52,10 +50,66 @@ public class DatabaseManagerTest  {
 
         JSONObject result = DatabaseManager.getGames(params);
         JSONArray games = result.getJSONArray("data");
+        Assert.assertFalse(games.isEmpty());
         for (Object obj : games) {
             JSONObject jo = (JSONObject) obj;
             Assert.assertEquals(jo.getString("name"), "Waking Mars");
         }
+    }
+
+    @Test
+    public void testPlatforms() throws SQLException {
+        //Platforms are filtered independently so that games that are on both the 3do and genesis will be listed, but also games that are only on one of the platforms
+        QueryParameters params = new QueryParameters();
+        params.setResult_size(10);
+        params.setPlaytime(0);
+        params.setPlatformList("3do, genesis");
+
+        boolean doesContain = true;
+        JSONObject result = DatabaseManager.getGames(params);
+        JSONArray games = result.getJSONArray("data");
+        Assert.assertFalse(games.isEmpty());
+        for (Object obj : games) {
+            JSONObject jo = (JSONObject) obj;
+            JSONArray platJA = jo.getJSONArray("platforms");
+            List<String> containsList = new ArrayList<>();
+            for (int i = 0; i < platJA.length(); i++) {
+                containsList.add(platJA.getString(i));
+            }
+
+            if(!containsList.contains("3do") && !containsList.contains("genesis")) {
+                doesContain = false;
+            }
+        }
+        Assert.assertTrue(doesContain);
+    }
+
+    @Test
+    public void testPlatformsAndGenres() throws SQLException {
+        QueryParameters params = new QueryParameters();
+        params.setResult_size(10);
+        params.setPlaytime(10);
+        params.setPlaytimeLeniency(10);
+        params.setGenresList("action, adventure");
+        params.setPlatformList("3do, jaguar");
+
+        boolean doesContain = true;
+        JSONObject result = DatabaseManager.getGames(params);
+        JSONArray games = result.getJSONArray("data");
+        Assert.assertTrue(games.length() == 1);
+        for (Object obj : games) {
+            JSONObject jo = (JSONObject) obj;
+            JSONArray platJA = jo.getJSONArray("platforms");
+            List<String> containsList = new ArrayList<>();
+            for (int i = 0; i < platJA.length(); i++) {
+                containsList.add(platJA.getString(i));
+            }
+
+            if(!containsList.contains("3do") && !containsList.contains("jaguar")) {
+                doesContain = false;
+            }
+        }
+        Assert.assertTrue(doesContain);
     }
 
     @Test

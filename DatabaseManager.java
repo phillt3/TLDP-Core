@@ -4,72 +4,146 @@ import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * Class responsible for handling and executing calls to the database for game data.
+ */
 public class DatabaseManager {
 
-  //Question on parameters
-  //1) what parameters? playtime, result size, genres, metacritic
-  //2) which are necessary? playtime
-  //3) which are optional? result size (set default to 10-20), genres (get randomized set if null), metacritic (could be specific number or maybe just above a certain number)
-  //4) this can done with something like a criteria def, where we set if its not null, and then just pass that 'params' arg in and check each variable if its not null, and then edit query accordingly
-
+  /**
+   * This is the main method of this class responsible for making the database call to retrieve a list of games based on parameters,
+   * and formatting that data to JSON. This will remain static for now so that there are no delays between opening a connection and closing it.
+   * 
+   * @param params
+   * @return
+   * @throws SQLException
+   */
     public static JSONObject getGames(QueryParameters params) throws SQLException {
-      //query parameters will need to have all checks for data validity in api service
-      //instead of catching the exception, should eventually throw it
 
-        String query = buildQuery(params).toString();
         Connection conn = DriverManager.getConnection(DatabaseConfig.getJDBCUrl());
-        PreparedStatement prep = conn.prepareStatement(query);
+        PreparedStatement prep = buildStatement(conn, params);
         ResultSet resultSet = prep.executeQuery();
 
-        JSONObject jsonResult = convertToJSONObject(resultSet);
+        JSONObject jsonResult = finalizeJSONObject(conn, resultSet);
 
         resultSet.close();
         prep.close();
         conn.close();
 
         return jsonResult;
-
     }
 
-    private static StringBuilder buildQuery(QueryParameters params) throws SQLException {
-      StringBuilder qry = new StringBuilder();
-      if (params.getGenresList() != null) {
-        qry.append("SELECT DISTINCT games.name, games.metacritic, games.released, games.playtime, games.background_image FROM games JOIN genres ON games.id = genres.id WHERE genres.name IN ").append("(").append(String.join(",", params.getGenresList())).append(") AND ");
+    /**
+     * Based on parameters given, this method is responsible for constructing the SQL to be executed.
+     * 
+     * @param conn
+     * @param params
+     * @return
+     * @throws SQLException
+     */
+    private static PreparedStatement buildStatement(Connection conn, QueryParameters params) throws SQLException {
+      boolean joinFlag = false;
+      boolean groupFlag = false;
+      StringBuilder select = new StringBuilder("SELECT DISTINCT games.id, games.name, games.metacritic, games.released, games.playtime, games.background_image FROM games");
+      StringBuilder join = new StringBuilder();
+      StringBuilder where = new StringBuilder(" WHERE");
+      StringBuilder group = new StringBuilder(" GROUP BY");
+
+      if (params.getPlaytimeLeniency() != null) {
+        where.append(" (games.playtime >= ? AND games.playtime <= ?)");
       } else {
-        qry.append("SELECT * FROM games WHERE ");
+        where.append(" games.playtime = ?");
       }
 
-      if(params.getPlaytimeLeniency() != null) {
-        int under = params.getPlaytime() + params.getPlaytimeLeniency();
-        int over = Math.max(0, params.getPlaytime() - params.getPlaytimeLeniency());
-        qry.append("(games.playtime >= '").append(over).append("' ").append("AND ");
-        qry.append("games.playtime <= '").append(under).append("')");
-      } else {
-        qry.append("games.playtime = '").append(params.getPlaytime()).append("'");
+      //This would not work as parameters, but worth a revisit
+      if(params.getGenresList() != null && !params.getGenresList().isEmpty()) {
+        joinFlag = true;
+        groupFlag = true;
+        join.append(" JOIN genres ON games.id = genres.id");
+        where.append(" AND (genres.name IN (").append(String.join(",", params.getGenresList())).append("))");
+        group.append(" genres.id HAVING COUNT(DISTINCT genres.name) = ?");
       }
 
-      if (params.getGenresList() != null) {
-        String genreCount = String.valueOf(params.getGenresList().size());
-        qry.append(" GROUP BY genres.id HAVING COUNT(DISTINCT genres.name) = ").append(genreCount);
+      if(params.getPlatformList() != null && !params.getPlatformList().isEmpty()) {
+        joinFlag = true;
+        join.append(" JOIN platforms ON games.id = platforms.id");
+        where.append(" AND (platforms.name IN (").append(String.join(",", params.getPlatformList())).append("))");
       }
-      qry.append(" LIMIT '").append(params.getResult_size()).append("'");
 
-      return qry;
+      if (joinFlag) {
+        select.append(join);
+      }
+
+      select.append(where);
+      if (groupFlag) {
+        select.append(group);
+      }
+      select.append(" ORDER BY RANDOM() LIMIT ?;");
+
+      return buildPreparedStatement(conn, params, select.toString(), groupFlag);
     }
 
-    private static JSONObject convertToJSONObject(ResultSet results) throws SQLException {
+    /**
+     * This method performs the logic to set the parameters initially added to the SQL.
+     * 
+     * @param conn
+     * @param params
+     * @param select
+     * @param groupFlag - this could better done, at the moment would just require additional condition checks
+     * @return
+     * @throws SQLException
+     */
+    private static PreparedStatement buildPreparedStatement(Connection conn, QueryParameters params, String select, boolean groupFlag) throws SQLException {
+      PreparedStatement prepStatement = conn.prepareStatement(select.toString());
+
+      int paramIndex = 1;
+
+      //paramIndex++ updates the value after that line (after it has been used)
+      if (params.getPlaytimeLeniency() != null) {
+        prepStatement.setInt(paramIndex++, Math.max(0, params.getPlaytime() - params.getPlaytimeLeniency()));
+        prepStatement.setInt(paramIndex++, params.getPlaytime() + params.getPlaytimeLeniency());
+      } else {
+        prepStatement.setInt(paramIndex++, params.getPlaytime());
+      }
+
+      //GROUPBY parameter
+      if(groupFlag) {
+        if(params.getGenresList() != null && !params.getGenresList().isEmpty()) {
+          prepStatement.setInt(paramIndex++, params.getGenresList().size());
+        }
+      }
+
+      //LIMIT parameter
+      prepStatement.setInt(paramIndex++, params.getResult_size());
+
+      return prepStatement;
+    }
+
+    /**
+     * Convert the results of the main execution into a JSON object but also performs additional DB reads to add platform specific data.
+     * 
+     * @param conn
+     * @param results
+     * @return
+     * @throws SQLException
+     */
+    private static JSONObject finalizeJSONObject(Connection conn, ResultSet results) throws SQLException {
       //if this is not very efficient, will want to look into external libraries such as Spring Data JDBC or asynch programming
 
       JSONArray joGamesArray = new JSONArray();
 
       while(results.next()) {
-        JSONObject game = new JSONObject();
-        game.put("name", results.getString("name"));
-        game.put("metascore", results.getInt("metacritic"));
-        game.put("released", results.getString("released"));
-        game.put("playtime", results.getInt("playtime"));
-        game.put("img", results.getString("background_image"));
-        joGamesArray.put(game);
+        
+        try {
+          Game game = Game.createGame(results.getString("name"), results.getInt("metacritic"), results.getString("released"), results.getInt("playtime"), results.getString("background_image"), getPlatformsForGame(conn, results.getString("id")));
+          joGamesArray.put(game.toJSON());
+          
+        } catch (SQLException e) {
+          //in this case, something wrong occurred while grabbing the platforms, send the rest of the data
+          Game game = Game.createGame(results.getString("name"), results.getInt("metacritic"), results.getString("released"), results.getInt("playtime"), results.getString("background_image"), new ArrayList<>());
+          joGamesArray.put(game.toJSON());
+        } catch (IllegalArgumentException e) {
+          //in this case, bad data record, so ignore adding it to resulting JSON object
+        }
       }
 
       JSONObject response = new JSONObject();
@@ -79,27 +153,25 @@ public class DatabaseManager {
 
     }
 
-    public static void main(String[] args) {
-      // QueryParameters params = new QueryParameters();
-      // params.setPlaytime(10);
-      // params.setPlaytime_leniency(3);
-      // params.setResult_size(10);
-      // getGames(params);
+    /**
+     * Retrieve platforms associated for game from database.
+     * 
+     * @param conn
+     * @param id
+     * @return
+     * @throws SQLException
+     */
+	  private static ArrayList<String> getPlatformsForGame(Connection conn, String id) throws SQLException {
+		  PreparedStatement prepStatement = conn.prepareStatement("SELECT name FROM platforms WHERE platforms.id = ?");
+		  prepStatement.setString(1, id);
+		  ResultSet resultSet = prepStatement.executeQuery();
 
-      QueryParameters params2 = new QueryParameters();
-      params2.setPlaytime(10);
-      params2.setPlaytimeLeniency(5);
-      params2.setResult_size(10);
-      ArrayList<String> genres = new ArrayList<String>();
-      genres.add("action"); //need to reimport database but these need to be lowercase
-      genres.add("adventure");
-      params2.setGenresList(genres);
-      try {
-        getGames(params2);
-      } catch (SQLException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
+		  ArrayList<String> platforms = new ArrayList<>();
 
+		  while(resultSet.next()) {
+			  platforms.add(resultSet.getString("name"));
+		  }
+
+		  return platforms;
+	  }
 }
