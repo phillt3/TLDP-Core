@@ -12,13 +12,14 @@ public class Game {
     private int metaScore;
     private String releasedDate;
     private int avgPlayTime;
+    private String description;
     private String imageURL;
     private ArrayList<String> platforms;
 
     /*
      * Method to validate the game data. Validation can be expanded depending on needs.
      */
-    public static Game createGame(String name, int metaScore, String releasedDate, int avgPlayTime, String imageURL, ArrayList<String> platforms) throws IllegalArgumentException {
+    public static Game createGame(String name, int metaScore, String releasedDate, int avgPlayTime, String description, String imageURL, ArrayList<String> platforms) throws IllegalArgumentException {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException();
         }
@@ -27,14 +28,15 @@ public class Game {
             throw new IllegalArgumentException();
         }
 
-        return new Game(name, metaScore, releasedDate, avgPlayTime, imageURL, platforms);
+        return new Game(name, metaScore, releasedDate, avgPlayTime, description, imageURL, platforms);
     }
 
-    public Game(String name, int metaScore, String releasedDate, int avgPlayTime, String imageURL, ArrayList<String> platforms) {
+    public Game(String name, int metaScore, String releasedDate, int avgPlayTime, String description, String imageURL, ArrayList<String> platforms) {
         this.name = name;
         this. metaScore = metaScore;
         this.releasedDate = releasedDate;
         this.avgPlayTime = avgPlayTime;
+        this.description = description;
         this.imageURL = imageURL;
         this.platforms = platforms;
     }
@@ -55,6 +57,10 @@ public class Game {
         return avgPlayTime;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public String getImageUrl() {
         return imageURL;
     }
@@ -72,6 +78,7 @@ public class Game {
         jo.put("metascore", this.getMetaScore());
         jo.put("released", this.getReleasedDate());
         jo.put("playtime", this.getAvgPlayTime());
+        jo.put("description", this.getDescription());
         jo.put("platforms", this.getPlatforms());
         jo.put("img", this.getImageUrl());
         return jo;

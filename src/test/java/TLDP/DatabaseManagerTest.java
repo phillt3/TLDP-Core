@@ -117,6 +117,23 @@ public class DatabaseManagerTest  {
     }
 
     @Test
+    public void testDescription() throws SQLException {
+        QueryParameters params = new QueryParameters();
+        params.setResult_size(2);
+        params.setPlaytime(3);
+
+        JSONObject result = DatabaseManager.getGames(params);
+        JSONArray games = result.getJSONArray("data");
+        Assert.assertEquals(games.length(), 2);
+
+        for (Object obj : games) {
+            JSONObject jo = (JSONObject) obj;
+            Assert.assertEquals(jo.getInt("playtime"), 3);
+            Assert.assertFalse(jo.getString("description").isEmpty());
+        }
+    }
+
+    @Test
     public void testEdgeCases() throws SQLException {
         //The strategy is that however fault the parameter object is the sql will not product errors that will terminate
         //the program. This way the only way the program fails is upon parameter validation, where it can be handled 

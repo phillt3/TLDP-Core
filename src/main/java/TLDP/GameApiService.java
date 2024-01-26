@@ -1,14 +1,15 @@
 package src.main.java.TLDP;
 import java.io.*;
 import java.util.*;
-import javax.servlet.ServletException;
 import javax.servlet.http.*;
+import javax.servlet.annotation.WebServlet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
  * Class responsible for handling incoming API requests and executing calls to DatabaseManager to grab data.
  */
+@WebServlet("/games")
 public class GameApiService extends HttpServlet  {
 
     private int status;
@@ -23,8 +24,9 @@ public class GameApiService extends HttpServlet  {
      * @param request
      * @param response
      */
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         QueryParameters params = validateParameters(request, response);
+        response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         JSONObject result = new JSONObject();
 
@@ -54,7 +56,7 @@ public class GameApiService extends HttpServlet  {
             //this should never occur
 
             result.put("status", "internal error");
-            result.put("code", response.getStatus());
+            result.put("code", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             result.put("data", new JSONArray());
 
             out.print(result.toString());
@@ -66,7 +68,7 @@ public class GameApiService extends HttpServlet  {
     }
 
     /**
-     * Validate and sanitize the parameters in the API request.
+     * Validate and sanitize the parameters in the API request to send to database manager.
      * 
      * @param request
      * @param response

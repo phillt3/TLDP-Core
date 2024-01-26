@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
- * This class defines a struture to convert the unformatted API request parameters to be easily handled in database management.
+ * This class defines a structure to convert the unformatted API request parameters to be easily handled in database management.
  */
 public class QueryParameters {
     private int result_size; //required within request

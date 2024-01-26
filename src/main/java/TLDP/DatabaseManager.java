@@ -19,7 +19,6 @@ public class DatabaseManager {
    * @throws SQLException
    */
     public static JSONObject getGames(QueryParameters params) throws SQLException {
-        System.out.println(DatabaseConfig.getJDBCUrl());
         Connection conn = DriverManager.getConnection(DatabaseConfig.getJDBCUrl());
         PreparedStatement prep = buildStatement(conn, params);
         ResultSet resultSet = prep.executeQuery();
@@ -44,7 +43,7 @@ public class DatabaseManager {
     private static PreparedStatement buildStatement(Connection conn, QueryParameters params) throws SQLException {
       boolean joinFlag = false;
       boolean groupFlag = false;
-      StringBuilder select = new StringBuilder("SELECT DISTINCT games.id, games.name, games.metacritic, games.released, games.playtime, games.background_image FROM games");
+      StringBuilder select = new StringBuilder("SELECT DISTINCT games.id, games.name, games.metacritic, games.released, games.playtime, games.description, games.background_image FROM games");
       StringBuilder join = new StringBuilder();
       StringBuilder where = new StringBuilder(" WHERE");
       StringBuilder group = new StringBuilder(" GROUP BY");
@@ -135,12 +134,12 @@ public class DatabaseManager {
       while(results.next()) {
         
         try {
-          Game game = Game.createGame(results.getString("name"), results.getInt("metacritic"), results.getString("released"), results.getInt("playtime"), results.getString("background_image"), getPlatformsForGame(conn, results.getString("id")));
+          Game game = Game.createGame(results.getString("name"), results.getInt("metacritic"), results.getString("released"), results.getInt("playtime"), results.getString("description"), results.getString("background_image"), getPlatformsForGame(conn, results.getString("id")));
           joGamesArray.put(game.toJSON());
           
         } catch (SQLException e) {
           //in this case, something wrong occurred while grabbing the platforms, send the rest of the data
-          Game game = Game.createGame(results.getString("name"), results.getInt("metacritic"), results.getString("released"), results.getInt("playtime"), results.getString("background_image"), new ArrayList<>());
+          Game game = Game.createGame(results.getString("name"), results.getInt("metacritic"), results.getString("released"), results.getInt("playtime"), results.getString("description"), results.getString("background_image"), new ArrayList<>());
           joGamesArray.put(game.toJSON());
         } catch (IllegalArgumentException e) {
           //in this case, bad data record, so ignore adding it to resulting JSON object
