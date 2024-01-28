@@ -133,6 +133,12 @@ public class GameApiService extends HttpServlet  {
             params.setPlatformList(platformList);
         }
 
+        String age = request.getParameter("age");
+
+        if (age != null) {
+            params.setAge(age);
+        }
+
 
         status = HttpServletResponse.SC_OK;
         return params;

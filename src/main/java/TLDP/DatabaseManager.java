@@ -69,6 +69,29 @@ public class DatabaseManager {
         where.append(" AND (platforms.name IN (").append(String.join(",", params.getPlatformList())).append("))");
       }
 
+      if (params.getAge() != null) {
+        switch(params.getAge()) {
+          case NEW:
+            where.append(" AND (games.released BETWEEN DATE(DATE('now'), '-1 years') AND DATE(DATE('now')))");
+            break;
+          case MODERN:
+            where.append(" AND (games.released BETWEEN DATE(DATE('now'), '-5 years') AND DATE(DATE('now'), '-1 years'))");
+            break;
+          case NOSTALGIC:
+            where.append(" AND (games.released BETWEEN DATE(DATE('now'), '-15 years') AND DATE(DATE('now'), '-5 years'))");
+            break;
+          case VINTAGE:
+            where.append(" AND (games.released BETWEEN DATE(DATE('now'), '-25 years') AND DATE(DATE('now'), '-15 years'))");
+            break;
+          case ANTIQUE:
+            where.append(" AND (games.released < DATE(DATE('now'), '-25 years'))");
+            break;
+          case NONE:
+          default:
+            break;
+        }
+      }
+
       if (joinFlag) {
         select.append(join);
       }
@@ -114,7 +137,6 @@ public class DatabaseManager {
 
       //LIMIT parameter
       prepStatement.setInt(paramIndex++, params.getResult_size());
-
       return prepStatement;
     }
 

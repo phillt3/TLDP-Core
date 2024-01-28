@@ -55,6 +55,13 @@
                         "description": "Filter by target platforms, for example: 'PlayStation 4'. Available Fields: '3do', 'android', 'atari 7800', 'atari st', 'classic macintosh', 'commodore / amiga', 'dreamcast', 'game boy', 'game boy advance', 'game boy color', 'game gear', 'game cube', 'genesis', 'ios', 'jaguar', 'linux', 'macos', 'neo geo', 'nes', 'nintendo 3ds', 'nintendo 64', 'nintendo ds', 'nintendo switch', 'pc', 'playstation', 'playstation 2', 'playstation 3', 'playstation 4', 'playstation 5', 'ps vita', 'psp', 'sega 32x', 'sega cd', 'sega master system', 'sega saturn', 'snes', 'web', 'wii', 'wii u', 'xbox', 'xbox 360', 'xbox one', 'xbox series s/x'",
                         "required": false,
                         "type": "string"
+                    },
+                    {
+                        "name": "age",
+                        "in": "query",
+                        "description": "Filter by the age of the game: 'new' for a game released within the last year, 'modern' for games released between 1 and 5 years ago, 'nostalgic' for games released between 5 and 15 years ago, 'vintage' for games released between 15 and 25 years ago, and 'antique' for games released more than 25 years ago.",
+                        "required": false,
+                        "type": "string"
                     }
                 ],
                 "responses": {

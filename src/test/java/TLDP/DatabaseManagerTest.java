@@ -1,5 +1,6 @@
 package src.test.java.TLDP;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -134,6 +135,122 @@ public class DatabaseManagerTest  {
     }
 
     @Test
+    public void testNewDateFilter() throws SQLException {
+        QueryParameters params = new QueryParameters();
+        params.setResult_size(10);
+        params.setPlaytime(10);
+        params.setPlaytimeLeniency(10);
+        params.setAge("new");
+
+        JSONObject result = DatabaseManager.getGames(params);
+        JSONArray games = result.getJSONArray("data");
+        LocalDate currentDate = LocalDate.now();
+        Assert.assertFalse(games.isEmpty());
+        for (Object obj : games) {
+            JSONObject jo = (JSONObject) obj;
+            LocalDate released = LocalDate.parse(jo.getString("released"));
+            Assert.assertTrue(released.isAfter(currentDate.minusYears(1)));
+        }
+    }
+
+    @Test
+    public void testModernDateFilter() throws SQLException {
+        QueryParameters params = new QueryParameters();
+        params.setResult_size(10);
+        params.setPlaytime(10);
+        params.setPlaytimeLeniency(10);
+        params.setAge("modern");
+        
+        JSONObject result = DatabaseManager.getGames(params);
+        JSONArray games = result.getJSONArray("data");
+        LocalDate currentDate = LocalDate.now();
+        Assert.assertFalse(games.isEmpty());
+        for (Object obj : games) {
+            JSONObject jo = (JSONObject) obj;
+            LocalDate released = LocalDate.parse(jo.getString("released"));
+            Assert.assertTrue(released.isAfter(currentDate.minusYears(5)) && released.isBefore(currentDate.minusYears(1)));
+        }
+    }
+
+    @Test
+    public void testNostalgicDateFilter() throws SQLException {
+        QueryParameters params = new QueryParameters();
+        params.setResult_size(10);
+        params.setPlaytime(10);
+        params.setPlaytimeLeniency(10);
+        params.setAge("nostalgic");
+
+        JSONObject result = DatabaseManager.getGames(params);
+        JSONArray games = result.getJSONArray("data");
+        LocalDate currentDate = LocalDate.now();
+        Assert.assertFalse(games.isEmpty());
+        for (Object obj : games) {
+            JSONObject jo = (JSONObject) obj;
+            LocalDate released = LocalDate.parse(jo.getString("released"));
+            Assert.assertTrue(released.isAfter(currentDate.minusYears(15)) && released.isBefore(currentDate.minusYears(5)));
+        }
+    }
+
+    @Test
+    public void testVintageDateFilter() throws SQLException {
+        QueryParameters params = new QueryParameters();
+        params.setResult_size(10);
+        params.setPlaytime(10);
+        params.setPlaytimeLeniency(10);
+        params.setAge("vintage");
+
+        JSONObject result = DatabaseManager.getGames(params);
+        JSONArray games = result.getJSONArray("data");
+        LocalDate currentDate = LocalDate.now();
+        Assert.assertFalse(games.isEmpty());
+        for (Object obj : games) {
+            JSONObject jo = (JSONObject) obj;
+            LocalDate released = LocalDate.parse(jo.getString("released"));
+            Assert.assertTrue(released.isAfter(currentDate.minusYears(25)) && released.isBefore(currentDate.minusYears(15)));
+        }
+    }
+
+    @Test
+    public void testAntiqueDateFilter() throws SQLException {
+        QueryParameters params = new QueryParameters();
+        params.setResult_size(10);
+        params.setPlaytime(10);
+        params.setPlaytimeLeniency(10);
+        params.setAge("antique");
+
+        JSONObject result = DatabaseManager.getGames(params);
+        JSONArray games = result.getJSONArray("data");
+        LocalDate currentDate = LocalDate.now();
+        Assert.assertFalse(games.isEmpty());
+        for (Object obj : games) {
+            JSONObject jo = (JSONObject) obj;
+            LocalDate released = LocalDate.parse(jo.getString("released"));
+            Assert.assertTrue(released.isBefore(currentDate.minusYears(25)));
+        }
+    }
+
+    @Test
+    public void testDateWithOtherParams() throws SQLException {
+        QueryParameters params = new QueryParameters();
+        params.setResult_size(10);
+        params.setPlaytime(10);
+        params.setPlaytimeLeniency(10);
+        params.setAge("modern");
+        params.setGenresList("action, shooter");
+        params.setPlatformList("playstation 4, playstation 5, pc");
+
+        JSONObject result = DatabaseManager.getGames(params);
+        JSONArray games = result.getJSONArray("data");
+        LocalDate currentDate = LocalDate.now();
+        Assert.assertFalse(games.isEmpty());
+        for (Object obj : games) {
+            JSONObject jo = (JSONObject) obj;
+            LocalDate released = LocalDate.parse(jo.getString("released"));
+            Assert.assertTrue(released.isAfter(currentDate.minusYears(5)) && released.isBefore(currentDate.minusYears(1)));
+        }
+    }
+
+    @Test
     public void testEdgeCases() throws SQLException {
         //The strategy is that however fault the parameter object is the sql will not product errors that will terminate
         //the program. This way the only way the program fails is upon parameter validation, where it can be handled 
@@ -177,5 +294,35 @@ public class DatabaseManagerTest  {
         result = DatabaseManager.getGames(params);
         games = result.getJSONArray("data");
         Assert.assertTrue(games.isEmpty());
+
+        params = new QueryParameters();
+        params.setResult_size(1);
+        params.setPlaytime(10);
+        params.setPlaytimeLeniency(10);
+        params.setAge(null);
+
+        result = DatabaseManager.getGames(params);
+        games = result.getJSONArray("data");
+        Assert.assertTrue(!games.isEmpty());
+
+        params = new QueryParameters();
+        params.setResult_size(1);
+        params.setPlaytime(10);
+        params.setPlaytimeLeniency(10);
+        params.setAge("");
+
+        result = DatabaseManager.getGames(params);
+        games = result.getJSONArray("data");
+        Assert.assertTrue(!games.isEmpty());
+
+        params = new QueryParameters();
+        params.setResult_size(1);
+        params.setPlaytime(10);
+        params.setPlaytimeLeniency(10);
+        params.setAge("not correct age value");
+
+        result = DatabaseManager.getGames(params);
+        games = result.getJSONArray("data");
+        Assert.assertTrue(!games.isEmpty());
     }
 }

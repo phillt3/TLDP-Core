@@ -7,11 +7,35 @@ import java.util.stream.Collectors;
  * This class defines a structure to convert the unformatted API request parameters to be easily handled in database management.
  */
 public class QueryParameters {
+
+    public enum Age {
+        NEW,
+        MODERN,
+        NOSTALGIC,
+        VINTAGE,
+        ANTIQUE,
+        NONE;
+
+        public static Age fromString(String age) {
+
+            if (age == null) {
+                return Age.NONE; 
+            }
+
+            try {
+                return Age.valueOf(age.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return Age.NONE;
+            }
+        }
+    }
+
     private int result_size; //required within request
     private int playtime; //required within request
     private Integer playtime_leniency;
     private ArrayList<String> genresList;
     private ArrayList<String> platformList;
+    private Age age;
 
     public QueryParameters() {
         
@@ -60,5 +84,13 @@ public class QueryParameters {
     public void setPlatformList(String platformString) {
         ArrayList<String> platformList = new ArrayList<String>(Arrays.asList(platformString.split("\\s*,\\s*")));
         this.setPlatformList(platformList);
+    }
+
+    public void setAge(String age) {
+        this.age = Age.fromString(age);
+    }
+
+    public Age getAge() {
+        return age;
     }
 }
